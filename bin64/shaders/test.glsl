@@ -613,9 +613,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 
 out vec4 FragColor;
-in vec2 TexCoords;
+in vec2 uv;
 
 void main()
 {    
-    mainImage(FragColor, TexCoords*iResolution.xy);
+    mainImage(FragColor, uv*iResolution.xy);
 }

@@ -8,18 +8,19 @@ public:
 	Buffer(int w, int h);
 
 	void Generate();
-	void AddInput(Texture& t);
+	void SetInput(int i, Texture* t);
 	void Render();
 
 	Shader* GetShaderPtr();
 	void SetShader(std::string frag, std::string vert = default_vert);
 	void SetShader(Shader* s);
-	GLuint GetOutput();
+	GLuint GetOutputNative();
+	Texture* GetOutput();
 
 private:
 	Shader* fv;
-	Texture* out;
-	std::vector<Texture*> in;
+	Texture *out0, *out1;
+	std::map<int, Texture*> in;
 
 	GLuint framebuffer, rbo;
 };

@@ -1,4 +1,6 @@
-layout(location = 0) out vec2 uv;
+#version 330 core
+
+out vec2 uv;
 
 void main() 
 {

@@ -157,21 +157,22 @@ void Shader::setUniform(std::string name, glm::vec2 X)
 void Shader::setUniform(int i, GLuint tid)
 {
 	glUseProgram(ProgramID);
-	GLuint A = glGetUniformLocation(ProgramID, ("iTexture" + int2str(i)).c_str());
+	GLuint A = glGetUniformLocation(ProgramID, ("iChannel" + std::to_string(i)).c_str());
 	glActiveTexture(GL_TEXTURE0 + i);
 	glBindTexture(GL_TEXTURE_2D, tid);
-	glUniform1i(A, i);
 }
 
+/*
+//dont use!
 void Shader::setUniform(std::string name, GLuint tid)
 {
 	glUseProgram(ProgramID);
 	GLuint A = glGetUniformLocation(ProgramID, name.c_str());
 	glActiveTexture(GL_TEXTURE0 + texture_unit);
 	glBindTexture(GL_TEXTURE_2D, tid);
-	glUniform1i(A, texture_unit);
 	texture_unit++;
 }
+*/
 
 GLuint Shader::getNativeHandle()
 {

@@ -129,14 +129,18 @@ int main(int argc, char *argv[]) {
 
 	//BUFFERS
 	Texture maintxt(&main_txt);
+
+	Buffer bufA(window.getSize().x, window.getSize().y);
+	bufA.SetShader("shaders/WavesA.glsl");
+
 	Buffer main(&maintxt);
-	main.SetShader("shaders/test.glsl");
+	main.SetShader("shaders/WavesM.glsl");
 
-
-
+	io_state.frame = 0;
 
 	//Main loop
-	while (window.isOpen())
+	bool isopen = true;
+	while (isopen)
 	{
 		sf::Event event;
 		window.clear(sf::Color::Blue);
@@ -168,7 +172,7 @@ int main(int argc, char *argv[]) {
 			switch (event.type)
 			{
 			case sf::Event::Closed:
-				window.close();
+				isopen = false;
 				break;
 			case sf::Event::Resized:
 				default_window_view = sf::View(visibleArea);
@@ -233,7 +237,12 @@ int main(int argc, char *argv[]) {
 		}
 
 		//set default uniforms for all buffers
+		SetDefaultUniforms(&bufA);
+		bufA.SetInput(0, bufA.GetOutput());
+		bufA.Render();
+
 		SetDefaultUniforms(&main);
+		main.SetInput(0, bufA.GetOutput());
 		main.Render();
 
 		//reset the GL state for SFML to work properly
@@ -242,11 +251,12 @@ int main(int argc, char *argv[]) {
 		//Draw render texture to main window
 		sf::Sprite sprite(main_txt);
 		sprite.setScale(float(window.getSize().x) / float(main_txt.getSize().x),
-			float(window.getSize().y) / float(main_txt.getSize().y));
+			-float(window.getSize().y) / float(main_txt.getSize().y));
+		sprite.setPosition(0., window.getSize().y);
 		window.draw(sprite);
 
 		//update frame parameters
-		io_state.frame++;
+		io_state.frame += 1;
 		io_state.dt = prev_s;
 		io_state.time += io_state.dt;
 		io_state.isKeyPressed = false;

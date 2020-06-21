@@ -18,14 +18,16 @@ float GetAvgIllumination(sf::Texture* txt)
 //Generate a buffer from an existing texture
 Buffer::Buffer(Texture* tex)
 {
-	out = tex;
+	out0 = tex;
+	out1 = tex;
 	Generate();
 }
 
 //Create a new FLOAT32 texture for the buffer
 Buffer::Buffer(int w, int h)
 {
-	out = new Texture(w, h, GL_RGBA32F);
+	out0 = new Texture(w, h, GL_RGBA32F);
+	out1 = new Texture(w, h, GL_RGBA32F);
 	Generate();
 }
 
@@ -33,46 +35,60 @@ void Buffer::Generate()
 {
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	// create a color attachment texture
-
-	glBindTexture(GL_TEXTURE_2D, out->GetNative());
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out->GetNative(), 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, out->GetSize().x, out->GetSize().y); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	
+	//color attachment texture
+	glBindTexture(GL_TEXTURE_2D, out0->GetNative());
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out0->GetNative(), 0);
+	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		ERROR_MSG("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Buffer::AddInput(Texture& t)
+void Buffer::SetInput(int i, Texture* t)
 {
-	in.push_back(&t);
+	fv->setUniform(i, t->GetNative());
+	in[i] = t;
 }
 
 void Buffer::Render()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glDisable(GL_DEPTH_TEST); 
+	glDisable(GL_BLEND);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	fv->Use();
 
-	for (int i = 0; i < in.size(); i++)
+	for (auto T:in)
 	{
+		int i = T.first;
 		glActiveTexture(GL_TEXTURE0 + i); 
-		glBindTexture(GL_TEXTURE_2D, in[i]->GetNative());
+		glBindTexture(GL_TEXTURE_2D, T.second->GetNative());
 	}
 
 	glBindVertexArray(0);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+	//	ERROR_MSG(("ERROR::FRAMEBUFFER::Render error " + std::to_string(err) + "!").c_str());
+	}
+
+	if (out0 != out1)
+	{
+		//swap buffers
+		std::swap(out0, out1);
+
+		//reattach the other buffer
+		glBindTexture(GL_TEXTURE_2D, out0->GetNative());
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out0->GetNative(), 0);
+	}
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -94,7 +110,13 @@ void Buffer::SetShader(Shader* s)
 	fv = s;
 }
 
-GLuint Buffer::GetOutput()
+GLuint Buffer::GetOutputNative()
 {
-	return out->GetNative();
+	return out1->GetNative();
 }
+
+Texture* Buffer::GetOutput()
+{
+	return out1;
+}
+

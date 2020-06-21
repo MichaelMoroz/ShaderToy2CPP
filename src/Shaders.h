@@ -46,7 +46,7 @@ public:
 	void setUniform(std::string name, glm::vec3 X);
 	void setUniform(std::string name, glm::vec2 X);
 	void setUniform(int i, GLuint tid);
-	void setUniform(std::string name, GLuint tid);
+	//void setUniform(std::string name, GLuint tid);
 
 	GLuint getNativeHandle();
 
