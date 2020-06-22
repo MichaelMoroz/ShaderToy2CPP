@@ -157,9 +157,11 @@ void Shader::setUniform(std::string name, glm::vec2 X)
 void Shader::setUniform(int i, GLuint tid)
 {
 	glUseProgram(ProgramID);
-	GLuint A = glGetUniformLocation(ProgramID, ("iChannel" + std::to_string(i)).c_str());
+	std::string s = "iChannel1";
+	GLuint A = glGetUniformLocation(ProgramID, s.c_str());
 	glActiveTexture(GL_TEXTURE0 + i);
 	glBindTexture(GL_TEXTURE_2D, tid);
+	glUniform1i(A, i);
 }
 
 /*

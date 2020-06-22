@@ -129,12 +129,13 @@ int main(int argc, char *argv[]) {
 
 	//BUFFERS
 	Texture maintxt(&main_txt);
-
-	Buffer bufA(window.getSize().x, window.getSize().y);
-	bufA.SetShader("shaders/WavesA.glsl");
+	Texture wolf0("textures/wolf.png");
+	Texture wolf1("textures/eyes.png");
 
 	Buffer main(&maintxt);
-	main.SetShader("shaders/WavesM.glsl");
+	main.SetShader("shaders/Wolf.glsl");
+	main.SetInput(0, &wolf0);
+	main.SetInput(1, &wolf1);
 
 	io_state.frame = 0;
 
@@ -237,12 +238,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		//set default uniforms for all buffers
-		SetDefaultUniforms(&bufA);
-		bufA.SetInput(0, bufA.GetOutput());
-		bufA.Render();
-
 		SetDefaultUniforms(&main);
-		main.SetInput(0, bufA.GetOutput());
 		main.Render();
 
 		//reset the GL state for SFML to work properly

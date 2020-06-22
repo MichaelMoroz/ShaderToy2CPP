@@ -29,26 +29,26 @@ float kernel(vec2 dx)
 void mainImage( out vec4 O, in vec2 P )
 {
 	vec2 wolf_size = textureSize(ch0, 0);
-	vec2 wolf_center = R*vec2(0.5, 2.5);
-	float wolf_scale = 1.;
+	vec2 wolf_center = R*0.5;
+	float wolf_scale = 0.2;
 	vec2 wolf_world_size = wolf_size*wolf_scale;
 	vec2 sampling_pos = clamp((P - (wolf_center - wolf_world_size*0.5))/wolf_world_size, vec2(0.), vec2(1.));
 	sampling_pos = vec2(sampling_pos.x, 1. - sampling_pos.y);
 	vec4 eyes = texture(ch1, sampling_pos);
 	vec4 wolf = texture(ch0, sampling_pos);
 	
-	vec4 eye_bloom = vec4(0.);
-	for(int i = -6; i <= 6; i++)
+	vec4 eye_bloom = vec3(0.);
+	for(int i = -2.; i <= 2.; i++)
 	{
-		for(int j = -6; j <= 6; j++)
+		for(int j = -2.; j <= 2.; j++)
 		{
 			vec2 dx = vec2(i,j);
-			vec4 eye = texture(ch1, sampling_pos + dx/vec2(340,1600));
-			eye_bloom += kernel(dx/4.)*vec4(removewhite(eye).xyz,1.);
+			vec4 eye = texture(ch1, sampling_pos + dx/100.);
+			eye_bloom += kernel(dx)*vec4(removewhite(eye),1.);
 		}
 	}
 	eye_bloom.xyz /= eye_bloom.w;
-	O = 0.7*removewhite(wolf) + 8.*(0.7 + 0.3*sin(vec4(1,2,3,4)*(3.*iTime + 0.02*(P.x + 0.5*P.y))))*eye_bloom + removewhite(eyes);
+	O = wolf + eye_bloom;
 }
 
 out vec4 FragColor;
@@ -59,3 +59,9 @@ void main()
 	mainImage(FragColor, uv*iResolution.xy);
 	FragColor.w = 1.;
 }
+
+0(40) : error C1060: incompatible types in initialization
+0(40) : error C1056: invalid initialization
+0(41) : error C7011: implicit cast from "float" to "int"
+0(43) : error C7011: implicit cast from "float" to "int"
+0(47) : error C1068: too much data in type constructor
