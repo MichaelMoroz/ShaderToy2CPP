@@ -86,7 +86,7 @@ void InitializeWindow(sf::RenderWindow *window, bool fullscreen, float FPSlimit)
 		if (!fullscreen)
 		{
 			sf::VideoMode fs_size = sf::VideoMode::getDesktopMode();
-			window->setSize(sf::Vector2u(fs_size.width/2, fs_size.height/2));
+			window->setSize(sf::Vector2u(fs_size.width/1.1, fs_size.height/1.1));
 			window->setPosition(sf::Vector2i(0, 0));
 		}
 	}
