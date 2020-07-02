@@ -26,42 +26,57 @@ vec2 dir(float x)
 
 vec2 wind(vec2 p, float t)
 {
-    t*=5.;
+    t*=15.;
     
     vec2 dx = 0.07*dir(dot(p, vec2(0.4, 0.7)) + t) + 
            0.04*dir(dot(p, vec2(0.8, -0.5)) + 0.625*t)+
-           0.01*dir(dot(p, vec2(-3., 0.7)) + 3.14*t)+
+           0.005*dir(dot(p, vec2(-3., 0.7)) + 3.14*t)+
            0.04*dir(dot(p, vec2(-0.6, -0.3)) + 1.133*t)+
-           0.26*dir(dot(p, vec2(0.013, 0.005)) + 0.431*t)+
-           0.35*dir(dot(p, vec2(-0.01, 0.012)) + 0.256*t);
+           0.26*dir(dot(p, vec2(0.1, 0.11)) + 0.431*t)+
+           0.35*dir(dot(p, vec2(-0.12, 0.1)) + 0.256*t);
     return 0.6*dx;
 }
 
-vec4 removewhite(vec4 c)
-{
-	float d = distance(c.xyz, vec3(1.)); //distance to white 
-	return step(0.5, d)*c; 
-}
-
-float kernel(vec2 dx)
+float G(vec2 dx)
 {
 	return exp(-dot(dx,dx));
 }
 
+vec3 Noise(vec2 p)
+{
+	vec2 size = textureSize(ch3, 0); 
+	p = mod(p, size);
+	return texture(ch3, p/size).xyz;
+}
+
+vec3 Wolf(vec2 p)
+{
+	vec4 s = pixel(ch0, p);
+	return s.xyz*s.w;
+}
+
+vec3 WolfFur(vec2 p)
+{
+	vec4 s = pixel(ch2, p);
+	return vec3(2.*s.xy - 1.,s.w);
+}
+
 #define H 23
 
-vec4 fur(vec2 p, vec2 d, vec2 de, float fur_l)
+vec4 fur(vec2 p, vec2 d, float fur_l)
 {
     vec4 col = vec4(0.);
-    vec2 dx = 2.*wind(p*de, 4.*iTime);
+    vec2 dx = 1.5*wind(p*0.3, iTime);
     
     for(int i = 0; i < 23; i++)
     {
 	    float k = float(i)/float(H); //the depth
       
-        vec2 pos = p + fur_l*(d+dx)*(k-0.5)*float(H)/de;  
+        vec2 pos = p + fur_l*(d+dx)*(k-0.5)*float(H);  
         
-        vec3 c = removewhite(texture(ch0, pos)).xyz; //color
+        vec3 c = Wolf(pos); //color
+		vec3 m = Noise(pos);
+		c *= m.x;
        
         float alpha = tanh(0.07*length(c)); //transparency
      
@@ -75,33 +90,14 @@ vec4 fur(vec2 p, vec2 d, vec2 de, float fur_l)
 void mainImage( out vec4 O, in vec2 P )
 {
 	vec2 wolf_size = textureSize(ch0, 0);
-	vec2 wolf_center = R*vec2(0.5, 0.7);
-	float wolf_scale = 0.3;
-	vec2 wolf_world_size = wolf_size*wolf_scale;
-	vec2 sampling_pos = clamp((P - (wolf_center - wolf_world_size*0.5))/wolf_world_size, vec2(0.), vec2(1.));
-	sampling_pos = vec2(sampling_pos.x, 1. - sampling_pos.y);
-	vec4 eyes = texture(ch1, sampling_pos);
-	
+	//P = R*vec2(0.25, 0.6) + 0.4*P;
 	vec2 mouse = vec2(iMouse.x, R.y - iMouse.y);
-	vec2 delta = (P - wolf_center)/R.x;
+	vec2 delta = (P - R*0.5)/R.x;
     float r = length(delta);
-	float fur_l = 1. - 1.*tanh(3.5*r);
-    delta = 3.5*vec2(-1, 1)*normalize(delta)*atan(6.*r); // point of view stuff
-	
-	vec4 wolf = fur(sampling_pos, delta, 0.4*wolf_size, fur_l);
-	
-	vec4 eye_bloom = vec4(0.);
-	for(int i = -6; i <= 6; i++)
-	{
-		for(int j = -6; j <= 6; j++)
-		{
-			vec2 dx = vec2(i,j);
-			vec4 eye = texture(ch1, sampling_pos + dx/vec2(340,1600));
-			eye_bloom += kernel(dx/4.)*vec4(removewhite(eye).xyz,1.);
-		}
-	}
-	eye_bloom.xyz /= eye_bloom.w;
-	O = wolf + 0.*(0.7 + 0.3*sin(vec4(1,2,3,4)*(3.*iTime + 0.02*(P.x + 0.5*P.y))))*eye_bloom + 0.*removewhite(eyes);
+	float fur_l = 1. - 1.*tanh(1.*r);
+    vec3 furparam = WolfFur(P); 
+	vec4 wolf = fur(P, 2.*furparam.xy, furparam.z*fur_l);
+	O = sqrt(wolf);
 }
 
 out vec4 FragColor;
