@@ -58,7 +58,7 @@ vec3 Wolf(vec2 p)
 vec3 WolfFur(vec2 p)
 {
 	vec4 s = pixel(ch2, p);
-	return vec3(2.*s.xy - 1.,s.w);
+	return vec3(clamp(1.5*(2.*s.xy - 1.), -1., 1.),s.w);
 }
 
 #define H 23
@@ -66,7 +66,7 @@ vec3 WolfFur(vec2 p)
 vec4 fur(vec2 p, vec2 d, float fur_l)
 {
     vec4 col = vec4(0.);
-    vec2 dx = 1.5*wind(p*0.3, iTime);
+    vec2 dx = 1.25*wind(p*0.3, iTime);
     
     for(int i = 0; i < 23; i++)
     {
@@ -96,7 +96,7 @@ void mainImage( out vec4 O, in vec2 P )
     float r = length(delta);
 	float fur_l = 1. - 1.*tanh(1.*r);
     vec3 furparam = WolfFur(P); 
-	vec4 wolf = fur(P, 2.*furparam.xy, furparam.z*fur_l);
+	vec4 wolf = fur(P, furparam.xy, furparam.z*fur_l);
 	O = sqrt(wolf);
 }
 
