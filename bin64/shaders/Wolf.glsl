@@ -8,11 +8,15 @@ uniform vec4	  iMouseSpeed;           // mouse speed
 
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
 
 #define R iResolution.xy
 #define pixel(ch, p) texture(ch,(p)/R)
 #define ch0 iChannel0
 #define ch1 iChannel1
+#define ch2 iChannel2
+#define ch3 iChannel3
 #define PI 3.14159265
 
 vec2 dir(float x)

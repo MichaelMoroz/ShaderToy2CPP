@@ -122,20 +122,27 @@ int main(int argc, char *argv[]) {
   
 	sf::View default_window_view = window.getDefaultView();
 
+	Texture wolf0("textures/wolf_body.png");
+	Texture wolf1("textures/eyes.png");
+	Texture wolf2("textures/wolf_normal.png");
+	Texture noise("textures/white_noise.png");
+
+	float aspect_ratio = wolf2.GetSize().x / wolf2.GetSize().y;
+	window.setSize(sf::Vector2u(720.f* aspect_ratio, 720.f));
+
 	io_state.window_size = sf::Vector2f(window.getSize().x, window.getSize().y);
 	main_txt.create(window.getSize().x, window.getSize().y);
-	float prev_s = 1./60.;
-	
+	float prev_s = 1. / 60.;
 
 	//BUFFERS
 	Texture maintxt(&main_txt);
-	Texture wolf0("textures/wolf.png");
-	Texture wolf1("textures/eyes.png");
 
 	Buffer main(&maintxt);
 	main.SetShader("shaders/Wolf.glsl");
 	main.SetInput(0, &wolf0);
 	main.SetInput(1, &wolf1);
+	main.SetInput(2, &wolf2);
+	main.SetInput(3, &noise);
 
 	io_state.frame = 0;
 
@@ -261,5 +268,8 @@ int main(int argc, char *argv[]) {
 		window.setView(default_window_view);
 		window.display();
 	}
+
+	main_txt.copyToImage().saveToFile("result.png");
+
 	return 0;
 }
